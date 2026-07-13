@@ -1,5 +1,41 @@
 # Diário de Desenvolvimento — Projeto MICAEL
 
+## 2026-07-13 — Sprint 01 / Fundação v0.2
+
+### Objetivo
+
+Substituir a base experimental por uma fundação ASP.NET Core 8 e PostgreSQL pronta para evolução incremental.
+
+### Entregas
+
+- Solution com separação Api, Application, Domain e Infrastructure.
+- Entidade `Tenant` com identificador, nome, slug único, estado e data de criação.
+- EF Core 8 com Npgsql, `MicaelDbContext` e migration `InitialCreate`.
+- API mínima com health check, informações do sistema, Swagger e Problem Details.
+- logging JSON estruturado no console.
+- testes xUnit unitários e de integração.
+- Dockerfile multi-stage e Compose com PostgreSQL 16.
+- documentação de build, testes, migrations e execução no PowerShell.
+
+### Decisões de arquitetura
+
+- O domínio permanece independente de infraestrutura e host HTTP.
+- Migrations ficam no projeto Infrastructure e podem ser aplicadas na inicialização por configuração.
+- O health check inicial mede a disponibilidade do processo; a prontidão do PostgreSQL é controlada pelo Compose antes de iniciar a API.
+- Configurações sensíveis são substituíveis por variáveis de ambiente e não há segredos de produção no repositório.
+
+### Validação
+
+- `dotnet restore backend/Micael.sln`.
+- `dotnet build backend/Micael.sln --configuration Release`.
+- `dotnet test backend/Micael.sln --configuration Release`.
+- `docker compose config`.
+- endpoints `/health` e `/api/v1/system/info`.
+
+### Limitação do ambiente de execução
+
+- A execução integral do Compose exige Docker Desktop com WSL 2 ou outro daemon de containers Linux ativo no Windows.
+
 ## 2026-07-13 — Versão 0.1
 
 ### Objetivo
