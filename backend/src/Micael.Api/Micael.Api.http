@@ -1,0 +1,9 @@
+@Micael.Api_HostAddress = http://localhost:8080
+
+GET {{Micael.Api_HostAddress}}/health
+Accept: application/json
+
+###
+
+GET {{Micael.Api_HostAddress}}/api/v1/system/info
+Accept: application/json
