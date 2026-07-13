@@ -4,12 +4,8 @@ import path from 'node:path';
 import { load, add } from './store.js';
 
 const port = Number(process.env.PORT || 3000);
-const publicDir = path.resolve('public');
+const root = path.resolve('public');
 
-function json(res, status, body) {
-  res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' });
-  res.end(JSON.stringify(body));
-}
-
-async function body(req) {
-  let
+const send = (res, status, body, type = 'application/json; charset=utf-8') => {
+  res.writeHead(status, { 'content-type': type, 'access-control-allow-origin': '*' });
+  res.end(type.startsWith('application/json')
