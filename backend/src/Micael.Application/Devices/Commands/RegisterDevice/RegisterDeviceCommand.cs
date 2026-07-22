@@ -1,3 +1,4 @@
+using MediatR;
 using Micael.Domain.Entities;
 
 namespace Micael.Application.Devices.Commands.RegisterDevice;
@@ -8,4 +9,4 @@ public sealed record RegisterDeviceCommand(
     string IpAddress,
     int Port,
     DeviceType Type,
-    DeviceProtocol Protocol);
+    DeviceProtocol Protocol) : IRequest<RegisterDeviceResponse>;
