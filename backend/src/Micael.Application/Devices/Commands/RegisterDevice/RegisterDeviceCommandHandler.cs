@@ -1,9 +1,11 @@
+using MediatR;
 using Micael.Application.Abstractions.Persistence;
 using Micael.Domain.Entities;
 
 namespace Micael.Application.Devices.Commands.RegisterDevice;
 
 public sealed class RegisterDeviceCommandHandler
+    : IRequestHandler<RegisterDeviceCommand, RegisterDeviceResponse>
 {
     private readonly IDeviceRepository _deviceRepository;
 
@@ -12,9 +14,9 @@ public sealed class RegisterDeviceCommandHandler
         _deviceRepository = deviceRepository;
     }
 
-    public async Task<RegisterDeviceResponse> HandleAsync(
+    public async Task<RegisterDeviceResponse> Handle(
         RegisterDeviceCommand command,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
 
