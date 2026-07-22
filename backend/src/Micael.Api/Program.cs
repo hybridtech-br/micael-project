@@ -3,6 +3,7 @@ using System.Text.Json;
 using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Micael.Api.Endpoints;
 using Micael.Api.ErrorHandling;
 using Micael.Application;
 using Micael.Application.Devices.Commands.RegisterDevice;
@@ -76,6 +77,8 @@ app.MapGet("/health/ready", async (MicaelDbContext dbContext, CancellationToken 
 })
     .WithName("GetReadiness")
     .WithOpenApi();
+
+app.MapDeviceEndpoints();
 
 app.MapPost("/api/v1/devices", async (
     RegisterDeviceCommand command,
