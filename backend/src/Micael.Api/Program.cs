@@ -1,8 +1,11 @@
 using System.Reflection;
 using System.Text.Json;
+using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Micael.Api.ErrorHandling;
+using Micael.Application;
+using Micael.Application.Devices.Commands.RegisterDevice;
 using Micael.Infrastructure;
 using Micael.Infrastructure.Persistence;
 
@@ -22,6 +25,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -72,6 +76,22 @@ app.MapGet("/health/ready", async (MicaelDbContext dbContext, CancellationToken 
 })
     .WithName("GetReadiness")
     .WithOpenApi();
+
+app.MapPost("/api/v1/devices", async (
+    RegisterDeviceCommand command,
+    ISender sender,
+    CancellationToken cancellationToken) =>
+{
+    var response = await sender.Send(command, cancellationToken);
+
+    return Results.Created($"/api/v1/devices/{response.Id}", response);
+})
+    .WithName("RegisterDevice")
+    .WithOpenApi()
+    .Produces<RegisterDeviceResponse>(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status409Conflict)
+    .ProducesProblem(StatusCodes.Status500InternalServerError);
 
 app.MapGet("/api/v1/system/version", () =>
 {
