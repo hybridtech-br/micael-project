@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -33,23 +34,68 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapHealthChecks("/health", new HealthCheckOptions
+static Task WriteHealthResponse(HttpContext context, Microsoft.Extensions.Diagnostics.HealthChecks.HealthReport report)
 {
-    ResponseWriter = static async (context, report) =>
+    context.Response.ContentType = "application/json";
+    return JsonSerializer.SerializeAsync(
+        context.Response.Body,
+        new
+        {
+            status = report.Status.ToString(),
+            timestampUtc = DateTimeOffset.UtcNow
+        },
+        cancellationToken: context.RequestAborted);
+}
+
+var healthOptions = new HealthCheckOptions
+{
+    ResponseWriter = WriteHealthResponse
+};
+
+app.MapHealthChecks("/health", healthOptions)
+    .WithName("GetHealth")
+    .WithOpenApi();
+
+app.MapHealthChecks("/health/live", healthOptions)
+    .WithName("GetLiveness")
+    .WithOpenApi();
+
+app.MapGet("/health/ready", async (MicaelDbContext dbContext, CancellationToken cancellationToken) =>
+{
+    var canConnect = await dbContext.Database.CanConnectAsync(cancellationToken);
+
+    return canConnect
+        ? Results.Ok(new { status = "Ready", timestampUtc = DateTimeOffset.UtcNow })
+        : Results.Json(
+            new { status = "NotReady", timestampUtc = DateTimeOffset.UtcNow },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+})
+    .WithName("GetReadiness")
+    .WithOpenApi();
+
+app.MapGet("/api/v1/system/version", () =>
+{
+    var assembly = Assembly.GetExecutingAssembly();
+    var informationalVersion = assembly
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+        .InformationalVersion;
+
+    return Results.Ok(new
     {
-        context.Response.ContentType = "application/json";
-        await JsonSerializer.SerializeAsync(
-            context.Response.Body,
-            new { status = report.Status.ToString() },
-            cancellationToken: context.RequestAborted);
-    }
-});
+        name = "MICAEL",
+        version = informationalVersion ?? assembly.GetName().Version?.ToString() ?? "unknown"
+    });
+})
+    .WithName("GetSystemVersion")
+    .WithOpenApi();
 
 app.MapGet("/api/v1/system/info", (IHostEnvironment environment) => Results.Ok(new
 {
     name = "MICAEL",
+    product = "MICAEL Platform",
     version = "0.2.0",
-    environment = environment.EnvironmentName
+    environment = environment.EnvironmentName,
+    timestampUtc = DateTimeOffset.UtcNow
 }))
     .WithName("GetSystemInfo")
     .WithOpenApi();
