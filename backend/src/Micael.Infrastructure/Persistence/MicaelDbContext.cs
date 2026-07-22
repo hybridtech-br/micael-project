@@ -8,6 +8,8 @@ public sealed class MicaelDbContext(DbContextOptions<MicaelDbContext> options)
 {
     public DbSet<Tenant> Tenants => Set<Tenant>();
 
+    public DbSet<Device> Devices => Set<Device>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(MicaelDbContext).Assembly);
